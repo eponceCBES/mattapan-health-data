@@ -44,6 +44,8 @@
  .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);color:var(--teal);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;white-space:nowrap}
  .exp-body{display:grid;grid-template-columns:290px 1fr;min-height:440px}
  @media(max-width:820px){.exp-body{grid-template-columns:1fr}}
+ .exp-body.heat{grid-template-columns:1fr}
+ .exp-body.heat .leg-list{display:none}
  .leg-list{border-right:1px solid var(--line);padding:14px 10px;overflow:auto;max-height:560px}
  .leg-hint{color:var(--mut2);font-size:12px;padding:2px 8px 10px}
  .leg-group{color:var(--mut2);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:12px 8px 6px;display:flex;align-items:center;gap:6px}
@@ -156,7 +158,7 @@
     </div>
    </div>
    <div class="exp-body">
-    <div class="leg-list" id="legList"><div class="leg-hint">Tap a name for their district dashboard ↗</div></div>
+    <div class="leg-list" id="legList"><div class="leg-hint">Tap a name for their district dashboard</div></div>
     <div class="map-col"><div id="map"></div>
      <div id="heatCard" class="heat-card">
       <div class="hc-t">Health hot spots</div>
@@ -190,14 +192,14 @@ const COLORS=['#a78bfa','#7dd3fc','#64748b','#2dd4bf','#f472b6'];
 function initials(n){return n.split(/\s+/).filter(w=>/[A-Za-z]/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase();}
 function avatarNode(name,cls){const p=(DATA.photos||{})[name];
  return p?`<div class="${cls}" style="background:url('${p}') center/cover;color:transparent"></div>`:`<div class="${cls}">${initials(name)}</div>`;}
-function ratio(z,c,hiw){if(!c||!z)return{txt:'',near:true,worse:false,good:false,arrow:'↔'};const r=z/c,near=Math.abs(r-1)<=.03;const mult=r>=1?r:1/r;return{txt:near?'on par with Boston':`${mult.toFixed(1)}x ${r>=1?'higher':'lower'} than Boston`,arrow:near?'↔':(r>=1?'↗':'↘'),near,worse:hiw?r>1.03:r<0.97,good:hiw?r<0.97:r>1.03};}
+function ratio(z,c,hiw){if(!c||!z)return{txt:'',near:true,worse:false,good:false,arrow:''};const r=z/c,near=Math.abs(r-1)<=.03;const mult=r>=1?r:1/r;return{txt:near?'on par with Boston':`${mult.toFixed(1)}x ${r>=1?'higher':'lower'} than Boston`,arrow:'',near,worse:hiw?r>1.03:r<0.97,good:hiw?r<0.97:r>1.03};}
 
 function cardHTML(m){const z=m.values.zcta,c=m.values.city,hiw=m.meta.higherIsWorse,rt=ratio(z.value,c&&c.value,hiw);
  const cls=rt.near?'neutral':(rt.worse?'worse':(rt.good?'good':'neutral'));
  const tag=(hiw&&rt.worse)?`<div class="tag">elevated risk</div>`:(rt.good?`<div class="tag ok">better than Boston</div>`:'');
- return `<div class="card ${cls}"><div class="k">${m.meta.label}</div><div class="v">${z.value}${z.unit}</div><div class="cmp"><span class="ar">${rt.arrow}</span> ${rt.txt}</div>${tag}</div>`;}
+ return `<div class="card ${cls}"><div class="k">${m.meta.label}</div><div class="v">${z.value}${z.unit}</div><div class="cmp">${rt.txt}</div>${tag}</div>`;}
 function lifeExpCard(){if(!DATA.lifeExpectancy)return'';const le=DATA.lifeExpectancy;
- return `<div class="card neutral" style="cursor:default"><div class="k">Life expectancy</div><div class="v" style="color:var(--violet)">${le.value} <span style="font-size:20px;font-weight:700;color:var(--mut)">yrs</span></div><div class="cmp"><span class="ar" style="color:var(--violet)"></span> Mattapan · BPHC</div><div class="tag" style="color:var(--mut2)">Health of Boston 2023</div></div>`;}
+ return `<div class="card neutral" style="cursor:default"><div class="k">Life expectancy</div><div class="v" style="color:var(--violet)">${le.value} <span style="font-size:20px;font-weight:700;color:var(--mut)">yrs</span></div><div class="cmp">Mattapan · BPHC</div><div class="tag" style="color:var(--mut2)">Health of Boston 2023</div></div>`;}
 
 /* ---- per-legislator aggregation from precinct->tract mapping ---- */
 function aggregate(chamber,name){
@@ -247,9 +249,9 @@ function mattapanWide(){
 }
 function cmpRow(label,dv,mv,unit,hiw){
  const diff=dv-mv, near=Math.abs(diff)<(unit==='$'?500:0.4), worse=hiw?diff>0:diff<0;
- const arrow=near?'↔':(diff>0?'↑':'↓'), col=near?'var(--mut)':(worse?'var(--red)':'var(--teal)');
+ const col=near?'var(--mut)':(worse?'var(--red)':'var(--teal)');
  const fmt=v=>unit==='$'?('$'+Math.round(v).toLocaleString()):(v.toFixed(1)+unit);
- return `<div class="legrow" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${label}</span><span class="pc" style="color:${col}">${fmt(dv)} <span style="color:var(--mut2);font-weight:500;font-size:11px">${arrow} Mattapan ${fmt(mv)}</span></span></div>`;
+ return `<div class="legrow" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${label}</span><span class="pc" style="color:${col}">${fmt(dv)} <span style="color:var(--mut2);font-weight:500;font-size:11px">vs Mattapan ${fmt(mv)}</span></span></div>`;
 }
 function compareHTML(A){
  const M=mattapanWide(), hyp=A.health.hypertension, mHyp=(DATA.health.find(m=>m.meta.key==='hypertension')||{}).values;
@@ -258,7 +260,7 @@ function compareHTML(A){
   + cmpRow('Seniors 65+',A.pctSenior,M.pctSenior,'%',false)
   + cmpRow('Median income',A.medianIncome,M.medianIncome,'$',false)
   + (hyp&&mHyp?cmpRow('High blood pressure',hyp.value,mHyp.zcta.value,'%',true):'')
-  + `<div class="hint">Public data (ACS, CDC PLACES). ↑/↓ vs the Mattapan-wide figure.</div>`;
+  + `<div class="hint">Public data (ACS, CDC PLACES). Compared with the Mattapan-wide figure.</div>`;
 }
 function renderPopup(){const {leg,chamber}=SEL;const A=aggregate(chamber,leg.name);
  document.getElementById('popBox').innerHTML=`
@@ -266,7 +268,7 @@ function renderPopup(){const {leg,chamber}=SEL;const A=aggregate(chamber,leg.nam
    <div><div class="pop-eye">${CHAMBERS.find(c=>c[0]===chamber)[1]} · ${leg.district}</div>
    <div class="pop-nm">${leg.name}</div>
    <div class="pop-mt">~${A.residents.toLocaleString()} residents · ${A.precinctCount} precincts</div>
-   ${leg.url?`<a class="pop-off" href="${leg.url}" target="_blank">official page ↗</a>`:''}</div>
+   ${leg.url?`<a class="pop-off" href="${leg.url}" target="_blank">official page</a>`:''}</div>
    <button class="pop-x" onclick="closePop()">×</button></div>
   <div class="car-nav"><button onclick="turn(-1)">‹</button><span class="ttl">${PAGES[PAGE]}</span><button onclick="turn(1)">›</button></div>
   <div class="pg">${pageHTML(A,leg,chamber)}</div>
@@ -300,7 +302,7 @@ function buildMap(){
 
 /* ---- heat map by condition ---- */
 let MODE='leg', HEATLABELS=null;
-function heatRGB(t){ // 0..1 → blue → cyan → amber → red (diverging, low=blue high=red)
+function heatRGB(t){ // 0..1 low->high: blue - cyan - amber - red (diverging, low=blue high=red)
  t=Math.max(0,Math.min(1,t));const s=[[37,99,235],[34,211,238],[251,191,36],[239,68,68]],n=s.length-1;
  const seg=Math.min(n-1,Math.floor(t*n)),lt=t*n-seg,a=s[seg],b=s[seg+1];
  return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*lt)).join(',')})`;
@@ -333,10 +335,13 @@ function setMode(mode){
  document.getElementById('tabHeat').classList.toggle('on',mode==='heat');
  document.getElementById('expTitle').textContent=mode==='heat'?'Health hot spots':'Explore by legislator';
  document.getElementById('expChip').style.display=mode==='heat'?'none':'';
+ // heat mode collapses the legislator list so the map takes the full width
+ document.querySelector('.exp-body').classList.toggle('heat',mode==='heat');
  if(mode==='heat'){deselect();document.getElementById('heatCard').style.display='block';heatColor(document.getElementById('condSel').value);}
  else{document.getElementById('heatCard').style.display='none';if(HEATLABELS)HEATLABELS.clearLayers();
   LAYER.eachLayer(l=>{l.unbindPopup();l.setStyle({color:'#334155',weight:.7,fillColor:'#1e293b',fillOpacity:.12});});
   if(SEL)highlight(SEL.leg.name,SEL.chamber);else highlight(null);}
+ if(MAP)setTimeout(()=>MAP.invalidateSize(),60);
 }
 /* ---- Mattapan vs Boston compare card ---- */
 function renderCompare(key){
@@ -367,7 +372,7 @@ function selectLeg(chamber,leg){
 
 function renderList(){
  const el=document.getElementById('legList');
- let h='<div class="leg-hint">Tap a name for their district dashboard ↗</div>';
+ let h='<div class="leg-hint">Tap a name for their district dashboard</div>';
  CHAMBERS.forEach(([ck,cl])=>{const arr=DATA.officials[ck]||[];if(!arr.length)return;
   h+=`<div class="leg-group">${cl}</div>`;
   arr.forEach(o=>{h+=`<div class="leg" data-nm="${o.name}" data-ch="${ck}">${avatarNode(o.name,'av')}<div class="nm">${o.name}</div><div class="ds">${(o.district||'').replace('Suffolk','').replace('District ','D')}</div></div>`;});
