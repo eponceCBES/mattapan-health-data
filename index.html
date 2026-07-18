@@ -108,7 +108,7 @@
  .pop{pointer-events:auto;width:min(420px,94vw);max-height:calc(100vh - 44px);overflow:auto;background:linear-gradient(180deg,#111a2b,var(--pop));border:1px solid rgba(148,163,184,.28);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.75);animation:popIn .18s ease}
  @keyframes popIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
  @media(max-width:820px){.modal{align-items:flex-end;justify-content:center;padding:0}
-  .pop{width:100vw;max-height:82vh;border-radius:18px 18px 0 0;animation:sheetIn .2s ease}}
+  .pop{width:100vw;max-height:58vh;border-radius:18px 18px 0 0;animation:sheetIn .2s ease}}
  @keyframes sheetIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
  .pop-head{display:flex;gap:13px;padding:18px 18px 14px;position:relative}
  .pop-head .av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1e293b,#334155);display:grid;place-items:center;font-weight:800;color:var(--mut)}
@@ -387,13 +387,18 @@ function selectLeg(chamber,leg){
  SEL={chamber,leg};PAGE=0;highlight(leg.name,chamber);
  document.querySelectorAll('.leg.active').forEach(e=>e.classList.remove('active'));
  const node=document.querySelector(`.leg[data-nm="${CSS.escape(leg.name)}"][data-ch="${chamber}"]`);if(node)node.classList.add('active');
- fitToDistrict(leg.name,chamber);
- // Center the map in the viewport so the district sits in the middle of the screen.
- const mp=document.getElementById('map');if(mp)mp.scrollIntoView({behavior:'smooth',block:'center'});
  renderPopup();
+ // After the panel/sheet is in the DOM, bring the map on-screen and zoom to the district.
+ requestAnimationFrame(()=>{
+  const wide=window.innerWidth>820;
+  const mp=document.getElementById('map');
+  if(mp)mp.scrollIntoView({behavior:'smooth',block:wide?'center':'start'});
+  fitToDistrict(leg.name,chamber);
+ });
 }
 // Zoom/pan the map so the selected legislator's precincts fill the view.
-// On wide screens, pad the right side so the district isn't hidden behind the docked panel.
+// Desktop: pad the right so the district clears the docked panel.
+// Mobile: pad the bottom so the district sits in the strip above the bottom sheet.
 function fitToDistrict(name,chamber){
  if(!MAP||!LAYER)return;
  const grp=[];LAYER.eachLayer(l=>{if(l.feature.properties[NAMEFIELD[chamber]]===name)grp.push(l);});
@@ -401,7 +406,7 @@ function fitToDistrict(name,chamber){
  try{
   const b=L.featureGroup(grp).getBounds();
   const wide=window.innerWidth>820;
-  MAP.fitBounds(b, wide?{paddingTopLeft:[40,40],paddingBottomRight:[440,40],maxZoom:14}:{padding:[30,30],maxZoom:14});
+  MAP.fitBounds(b, wide?{paddingTopLeft:[40,40],paddingBottomRight:[440,40],maxZoom:14}:{paddingTopLeft:[24,24],paddingBottomRight:[24,150],maxZoom:14});
  }catch(e){}
 }
 
