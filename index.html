@@ -42,6 +42,19 @@
  .ix-cmp{font-size:12px;color:var(--mut2);text-align:right}
  .ix-val{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;min-width:54px;text-align:right}
  @media(max-width:430px){.ix-cmp{display:none}}
+ /* Mattapan-vs-Boston bar widgets */
+ .bar-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:8px}
+ @media(max-width:760px){.bar-grid{grid-template-columns:1fr}}
+ .bw{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;transition:.15s}
+ .bw[data-key]:hover{border-color:rgba(45,212,191,.4);transform:translateY(-2px)}
+ .bw-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+ .bw-name{font-weight:700;font-size:14.5px}
+ .bw-x{font-size:11.5px;font-weight:600;white-space:nowrap;text-align:right}
+ .bw-row{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:10px;margin:7px 0}
+ .bw-lab{font-size:12px;color:var(--mut2)}
+ .bw-track{height:12px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
+ .bw-fill{height:100%;border-radius:7px}
+ .bw-v{font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
  .card{background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--line);border-radius:16px;padding:20px 22px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
  .card:hover{border-color:rgba(45,212,191,.4);transform:translateY(-2px)}
  .card .k{color:var(--mut);font-size:13.5px;font-weight:600;margin-bottom:8px}
@@ -178,11 +191,6 @@
    </div>
   </div>
 
-  <div class="sec-label">At a glance</div>
-  <div id="cards" class="grid"><div class="loading" id="cardsLoad">Loading…</div></div>
-  <div class="sec-label" style="margin-top:30px">All health indicators — <span style="color:var(--mut);font-weight:500">tap any for detail</span></div>
-  <div id="hindex"></div>
-
   <div class="explorer">
    <div class="exp-head">
     <div class="exp-title-wrap">
@@ -208,11 +216,14 @@
    </div>
   </div>
 
-  <div class="sec-label">Mattapan vs Boston — pick a condition</div>
+  <div class="sec-label" style="margin-top:34px">Mattapan vs Boston — pick a condition</div>
   <div class="compare-card">
    <div class="cc-head"><select id="cmpSel" class="cond-sel"></select><span class="cc-sub">— where Mattapan stands</span></div>
    <div id="cmpBody"></div>
   </div>
+
+  <div class="sec-label" style="margin-top:30px">Every indicator, Mattapan vs Boston — <span style="color:var(--mut);font-weight:500">tap any for detail</span></div>
+  <div id="barGrid"></div>
 
   <div class="foot" id="foot"></div>
  </div>
@@ -559,6 +570,36 @@ function exportPDF(){
  w.focus();setTimeout(()=>{try{w.print();}catch(e){}},500);
 }
 
+/* bottom section: Mattapan-vs-Boston bar-chart widget per indicator, grouped */
+function barWidget(m){
+ const z=m.values.zcta.value,c=m.values.city&&m.values.city.value,unit=m.values.zcta.unit||'%',hiw=m.meta.higherIsWorse;
+ if(typeof c!=='number')return '';
+ const max=Math.max(z,c)*1.12||1,r=z/c,worse=hiw?r>1.03:r<0.97;
+ const matG=worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)';
+ const x=`${(r>=1?r:1/r).toFixed(1)}× ${r>=1?'higher':'lower'} than Boston`;
+ return `<div class="bw" data-key="${m.meta.key}">
+   <div class="bw-top"><span class="bw-name">${hlabel(m)}</span><span class="bw-x" style="color:${worse?'var(--red)':'var(--mut2)'}">${x}</span></div>
+   <div class="bw-row"><span class="bw-lab">Mattapan</span><div class="bw-track"><div class="bw-fill" style="width:${z/max*100}%;background:${matG}"></div></div><span class="bw-v">${z}${unit}</span></div>
+   <div class="bw-row"><span class="bw-lab">Boston</span><div class="bw-track"><div class="bw-fill" style="width:${c/max*100}%;background:linear-gradient(90deg,#475569,#64748b)"></div></div><span class="bw-v">${c}${unit}</span></div>
+ </div>`;
+}
+function renderBars(){
+ const GROUPS=[
+  {t:'Chronic conditions',keys:['hypertension','diabetes','obesity','highchol','chd','stroke','copd','asthma']},
+  {t:'Behaviors & risk factors',keys:['csmoking','lpa']},
+  {t:'Mental health & access',keys:['depression','mental_health','no_insurance']},
+ ];
+ const byKey={};(DATA.health||[]).forEach(m=>byKey[m.meta.key]=m);
+ const used=new Set();
+ let h='';
+ if(DATA.lifeExpectancy){h+=`<div class="ix-group">Life expectancy</div><div class="bar-grid"><div class="bw" style="cursor:default"><div class="bw-top"><span class="bw-name">Life expectancy</span><span class="bw-x" style="color:var(--mut2)">${DATA.lifeExpectancy.source||'BPHC'}</span></div><div style="font-size:32px;font-weight:850;color:var(--violet);line-height:1">${DATA.lifeExpectancy.value} <span style="font-size:15px;font-weight:700;color:var(--mut)">years</span></div></div></div>`;}
+ GROUPS.forEach(g=>{const items=g.keys.filter(k=>byKey[k]&&byKey[k].values.city);if(!items.length)return;items.forEach(k=>used.add(k));
+   h+=`<div class="ix-group">${g.t}</div><div class="bar-grid">`+items.map(k=>barWidget(byKey[k])).join('')+`</div>`;});
+ const extra=(DATA.health||[]).filter(m=>!used.has(m.meta.key)&&m.values.city);
+ if(extra.length)h+=`<div class="ix-group">Other</div><div class="bar-grid">`+extra.map(barWidget).join('')+`</div>`;
+ const el=document.getElementById('barGrid');el.innerHTML=h;
+ el.querySelectorAll('.bw[data-key]').forEach(w=>w.addEventListener('click',()=>openCard(w.dataset.key)));
+}
 /* compact indicator index, grouped by category */
 function renderIndex(){
  const GROUPS=[
@@ -590,11 +631,7 @@ async function boot(){
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('cards').innerHTML='<div class="loading">Could not load data.</div>';return;}
  document.getElementById('updated').textContent='Updated Jul 17, 2026.';
- // At-a-glance: a few headline cards; everything else lives in the compact index below.
- const HEADLINE=['hypertension','diabetes'];
- const cardsEl=document.getElementById('cards');
- cardsEl.innerHTML=(DATA.health||[]).filter(m=>HEADLINE.includes(m.meta.key)).map(cardHTML).join('')+lifeExpCard();
- renderIndex();
+ renderBars();
  renderList(); buildMap();
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
