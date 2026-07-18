@@ -635,8 +635,7 @@ function openCard(key){
    <div class="cbox-sub">of Mattapan adults${cmpTxt?' · '+cmpTxt:''}</div></div>
    <button class="pop-x" onclick="closeCard()">×</button></div>
   <div class="cbox-bars">${rows.map(([lab,val])=>{const main=lab==='Mattapan';const g=main?(worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)'):'linear-gradient(90deg,#475569,#64748b)';return `<div class="cbar"><div class="cbar-top"><span>${lab}</span><span class="cbar-v">${val}${unit}</span></div><div class="cbar-track"><div class="cbar-fill" style="width:${val/max*100}%;background:${g}"></div></div></div>`;}).join('')}</div>
-  ${range?`<div class="cbox-row"><span>Range across Mattapan's census tracts</span><b>${range}</b></div>`:''}
-  <div class="hint">Public data — CDC PLACES (model-based small-area estimates, adults 18+). Compared with Boston, Massachusetts, and the U.S.</div>`;
+  `;
  document.getElementById('cardModal').classList.add('open');
 }
 function closeCard(){document.getElementById('cardModal').classList.remove('open');}
