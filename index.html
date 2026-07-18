@@ -387,9 +387,22 @@ function selectLeg(chamber,leg){
  SEL={chamber,leg};PAGE=0;highlight(leg.name,chamber);
  document.querySelectorAll('.leg.active').forEach(e=>e.classList.remove('active'));
  const node=document.querySelector(`.leg[data-nm="${CSS.escape(leg.name)}"][data-ch="${chamber}"]`);if(node)node.classList.add('active');
- // Bring the map into view so the highlighted district is visible beside the panel.
- const mp=document.getElementById('map');if(mp&&mp.getBoundingClientRect().bottom>window.innerHeight){mp.scrollIntoView({behavior:'smooth',block:'center'});}
+ fitToDistrict(leg.name,chamber);
+ // Center the map in the viewport so the district sits in the middle of the screen.
+ const mp=document.getElementById('map');if(mp)mp.scrollIntoView({behavior:'smooth',block:'center'});
  renderPopup();
+}
+// Zoom/pan the map so the selected legislator's precincts fill the view.
+// On wide screens, pad the right side so the district isn't hidden behind the docked panel.
+function fitToDistrict(name,chamber){
+ if(!MAP||!LAYER)return;
+ const grp=[];LAYER.eachLayer(l=>{if(l.feature.properties[NAMEFIELD[chamber]]===name)grp.push(l);});
+ if(!grp.length)return;
+ try{
+  const b=L.featureGroup(grp).getBounds();
+  const wide=window.innerWidth>820;
+  MAP.fitBounds(b, wide?{paddingTopLeft:[40,40],paddingBottomRight:[440,40],maxZoom:14}:{padding:[30,30],maxZoom:14});
+ }catch(e){}
 }
 
 function renderList(){
