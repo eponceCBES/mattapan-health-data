@@ -3,7 +3,21 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Mattapan Health &amp; Community</title>
+<title>Mattapan Health &amp; Community — Neighborhood Profile</title>
+<meta name="description" content="A neighborhood health profile for Mattapan, Boston — chronic disease, health care access, and how the neighborhood compares to Boston, mapped by district. Public data (CDC PLACES, ACS, BPHC)."/>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Mattapan Health & Community"/>
+<meta property="og:title" content="Mattapan Health & Community"/>
+<meta property="og:description" content="A neighborhood health profile — how Mattapan compares to Boston, mapped by district. Public data (CDC PLACES, ACS, BPHC)."/>
+<meta property="og:url" content="https://mattapan-health-data.onrender.com/"/>
+<meta property="og:image" content="https://mattapan-health-data.onrender.com/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Mattapan Health & Community"/>
+<meta name="twitter:description" content="A neighborhood health profile — how Mattapan compares to Boston. Public data."/>
+<meta name="twitter:image" content="https://mattapan-health-data.onrender.com/og-image.png"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
  :root{
@@ -715,7 +729,8 @@ async function boot(){
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
  const cs=document.getElementById('condSel');cs.innerHTML=opts;
- document.getElementById('foot').innerHTML=`${(DATA.health||[]).length} health indicators · ${Object.keys(DATA.demographics||{}).length} census tracts · ${(DATA.precincts||[]).length} precincts · sources: CDC PLACES, ACS.`;
+ document.getElementById('foot').innerHTML=`<div style="color:var(--mut);font-weight:600;margin-bottom:8px">${(DATA.health||[]).length} health indicators · ${Object.keys(DATA.demographics||{}).length} census tracts · ${(DATA.precincts||[]).length} voting precincts</div>
+  <b>Public data only.</b> Health indicators: CDC PLACES 2025 release (2023 survey data), model-based small-area estimates. Demographics: U.S. Census ACS 2022 5-year. Life expectancy: Boston Public Health Commission, Health of Boston 2023. A community information resource — it contains no CBES / JPNDC data and is not medical advice.`;
  document.getElementById('popModal').addEventListener('click',e=>{if(e.target.id==='popModal')closePop();});
  document.getElementById('pdfBtn').onclick=exportPDF;
  // health-card detail popups + sources popup
