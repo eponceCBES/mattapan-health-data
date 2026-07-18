@@ -289,7 +289,6 @@
   </div>
   <div id="barGrid"></div>
 
-  <div class="foot" id="foot"></div>
  </div>
 
  <div class="modal" id="popModal"><div class="pop" id="popBox"></div></div>
@@ -717,7 +716,7 @@ function initParallax(){
  window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(run);ticking=true;}},{passive:true});run();
 }
 async function boot(){
- try{LIGHT=(localStorage.getItem('mtp-theme')||'light')==='light';}catch(e){LIGHT=true;}
+ try{LIGHT=(localStorage.getItem('mtp-theme')||'dark')==='light';}catch(e){LIGHT=false;}
  document.body.classList.toggle('light',LIGHT);
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('barGrid').innerHTML='<div class="loading">Could not load data.</div>';return;}
@@ -729,8 +728,6 @@ async function boot(){
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
  const cs=document.getElementById('condSel');cs.innerHTML=opts;
- document.getElementById('foot').innerHTML=`<div style="color:var(--mut);font-weight:600;margin-bottom:8px">${(DATA.health||[]).length} health indicators · ${Object.keys(DATA.demographics||{}).length} census tracts · ${(DATA.precincts||[]).length} voting precincts</div>
-  <b>Public data only.</b> Health indicators: CDC PLACES 2025 release (2023 survey data), model-based small-area estimates. Demographics: U.S. Census ACS 2022 5-year. Life expectancy: Boston Public Health Commission, Health of Boston 2023. A community information resource — it contains no CBES / JPNDC data and is not medical advice.`;
  document.getElementById('popModal').addEventListener('click',e=>{if(e.target.id==='popModal')closePop();});
  document.getElementById('pdfBtn').onclick=exportPDF;
  // health-card detail popups + sources popup
