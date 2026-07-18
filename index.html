@@ -28,6 +28,10 @@
  .sec-label .ic{color:var(--pink)}
  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+ .grid .card.card-hidden{display:none}
+ .grid.cards-open .card.card-hidden{display:block}
+ .more-btn{display:none;margin:16px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--teal);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:650;cursor:pointer;transition:.15s}
+ .more-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(45,212,191,.4)}
  .card{background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--line);border-radius:16px;padding:20px 22px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
  .card:hover{border-color:rgba(45,212,191,.4);transform:translateY(-2px)}
  .card .k{color:var(--mut);font-size:13.5px;font-weight:600;margin-bottom:8px}
@@ -165,7 +169,8 @@
   </div>
 
   <div class="sec-label">Key health facts — <span style="color:var(--mut);font-weight:500">tap any card for details</span></div>
-  <div id="cards" class="grid"><div class="loading">Loading…</div></div>
+  <div id="cards" class="grid"><div class="loading" id="cardsLoad">Loading…</div></div>
+  <button id="cardsMore" class="more-btn"></button>
 
   <div class="explorer">
    <div class="exp-head">
@@ -261,7 +266,7 @@ function pageHTML(A,leg,chamber){
  if(PAGE===3){return compareHTML(A);}
  return `<div class="stbox" style="margin-bottom:10px"><div class="l">This seat</div><div class="n" style="font-size:16px">${leg.name}</div><div class="l">${leg.district} · ${CHAMBERS.find(c=>c[0]===chamber)[1]}</div></div><div class="hint">Also representing this area:</div>${CHAMBERS.map(([ck,cl])=>DATA.officials[ck].map(o=>`<div class="legrow"><span class="sw" style="background:${o.name===leg.name?'var(--teal)':'rgba(148,163,184,.4)'}"></span>${o.name}<span class="pc" style="font-weight:500;color:var(--mut2)">${cl}</span></div>`).join('')).join('')}`;}
 
-const PAGES=['Overview','Who lives here','Health','vs Mattapan','Elected'];
+const PAGES=['Overview','Who lives here','Health','vs Boston','Elected'];
 let _mw=null;
 function mattapanWide(){
  if(_mw)return _mw;
@@ -273,16 +278,18 @@ function cmpRow(label,dv,mv,unit,hiw){
  const diff=dv-mv, near=Math.abs(diff)<(unit==='$'?500:0.4), worse=hiw?diff>0:diff<0;
  const col=near?'var(--mut)':(worse?'var(--red)':'var(--teal)');
  const fmt=v=>unit==='$'?('$'+Math.round(v).toLocaleString()):(v.toFixed(1)+unit);
- return `<div class="legrow" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${label}</span><span class="pc" style="color:${col}">${fmt(dv)} <span style="color:var(--mut2);font-weight:500;font-size:11px">vs Mattapan ${fmt(mv)}</span></span></div>`;
+ return `<div class="legrow" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${label}</span><span class="pc" style="color:${col}">${fmt(dv)} <span style="color:var(--mut2);font-weight:500;font-size:11px">vs Boston ${fmt(mv)}</span></span></div>`;
 }
 function compareHTML(A){
- const M=mattapanWide(), hyp=A.health.hypertension, mHyp=(DATA.health.find(m=>m.meta.key==='hypertension')||{}).values;
- return `<div class="hint" style="margin:0 0 8px">How this district compares to Mattapan overall:</div>`
-  + cmpRow('Below poverty',A.pctPoverty,M.pctPoverty,'%',true)
-  + cmpRow('Seniors 65+',A.pctSenior,M.pctSenior,'%',false)
-  + cmpRow('Median income',A.medianIncome,M.medianIncome,'$',false)
-  + (hyp&&mHyp?cmpRow('High blood pressure',hyp.value,mHyp.zcta.value,'%',true):'')
-  + `<div class="hint">Public data (ACS, CDC PLACES). Compared with the Mattapan-wide figure.</div>`;
+ // Compare this district's health to Boston overall (a meaningful benchmark).
+ const keys=['hypertension','diabetes','obesity','csmoking','lpa'];
+ const rows=keys.map(k=>{const h=A.health[k];const m=(DATA.health||[]).find(x=>x.meta.key===k);
+   const city=m&&m.values.city&&m.values.city.value;
+   if(!h||typeof city!=='number')return'';
+   return cmpRow(hlabel(m),h.value,city,'%',m.meta.higherIsWorse);}).join('');
+ return `<div class="hint" style="margin:0 0 8px">How this district's health compares to Boston overall:</div>`
+  + rows
+  + `<div class="hint">Public data — CDC PLACES. District rate vs the Boston-wide rate.</div>`;
 }
 function renderPopup(){const {leg,chamber}=SEL;const A=aggregate(chamber,leg.name);
  document.getElementById('popBox').innerHTML=`
@@ -545,7 +552,14 @@ async function boot(){
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('cards').innerHTML='<div class="loading">Could not load data.</div>';return;}
  document.getElementById('updated').textContent='Updated Jul 17, 2026.';
- document.getElementById('cards').innerHTML=(DATA.health||[]).map(cardHTML).join('')+lifeExpCard();
+ const cardsEl=document.getElementById('cards');
+ cardsEl.innerHTML=(DATA.health||[]).map(cardHTML).join('')+lifeExpCard();
+ // Keep the top clean: show the first 6 indicators + life expectancy, hide the rest behind a toggle.
+ const LIMIT=6; let hc=0;
+ cardsEl.querySelectorAll('.card').forEach(c=>{if(c.hasAttribute('data-key')){hc++;if(hc>LIMIT)c.classList.add('card-hidden');}});
+ const moreBtn=document.getElementById('cardsMore');
+ if(hc>LIMIT){moreBtn.style.display='block';moreBtn.textContent=`Show all ${hc} indicators`;
+  moreBtn.onclick=()=>{const open=cardsEl.classList.toggle('cards-open');moreBtn.textContent=open?'Show fewer':`Show all ${hc} indicators`;};}
  renderList(); buildMap();
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
