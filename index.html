@@ -397,13 +397,17 @@ function closePop(){document.getElementById('popModal').classList.remove('open')
 function deselect(){closePop();SEL=null;if(LAYER)highlight(null);document.querySelectorAll('.leg.active').forEach(e=>e.classList.remove('active'));}
 
 /* ---- theme ---- */
-let LIGHT=false, TILE=null;
+let LIGHT=false, TILE=null, LBL=null;
 function mc(){return LIGHT?{stroke:'#9db4d6',fill:'#c9dbf2',accent:'#2563eb'}:{stroke:'#334155',fill:'#1e293b',accent:'#2dd4bf'};}
 function setTiles(){
  if(!MAP)return;
- if(TILE)MAP.removeLayer(TILE);
- const url=LIGHT?'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
- TILE=L.tileLayer(url,{maxZoom:19}).addTo(MAP);if(TILE.bringToBack)TILE.bringToBack();
+ if(TILE)MAP.removeLayer(TILE);if(LBL)MAP.removeLayer(LBL);
+ const base=LIGHT?'light_nolabels':'dark_nolabels', lbl=LIGHT?'light_only_labels':'dark_only_labels';
+ TILE=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${base}/{z}/{x}/{y}{r}.png`,{maxZoom:19}).addTo(MAP);
+ if(TILE.bringToBack)TILE.bringToBack();
+ // place-name labels (Mattapan, Dorchester, Milton…) sit ABOVE the colored precincts for context
+ if(!MAP.getPane('labels')){MAP.createPane('labels');MAP.getPane('labels').style.zIndex=640;MAP.getPane('labels').style.pointerEvents='none';}
+ LBL=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${lbl}/{z}/{x}/{y}{r}.png`,{maxZoom:19,pane:'labels'}).addTo(MAP);
 }
 function restyleMap(){ if(!LAYER)return; if(MODE==='heat')heatColor(document.getElementById('condSel').value); else if(SEL)highlight(SEL.leg.name,SEL.chamber); else highlight(null); }
 function applyTheme(){
