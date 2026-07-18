@@ -703,7 +703,7 @@ async function boot(){
  document.body.classList.toggle('light',LIGHT);
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('barGrid').innerHTML='<div class="loading">Could not load data.</div>';return;}
- document.getElementById('updated').textContent='Updated Jul 17, 2026.';
+ document.getElementById('updated').textContent='Updated Jul 2026 — CDC PLACES 2025 release (2023 survey data).';
  renderBars();
  renderList(); buildMap();
  applyTheme();
