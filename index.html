@@ -261,7 +261,7 @@ function pageHTML(A,leg,chamber){
  if(PAGE===3){return compareHTML(A);}
  return `<div class="stbox" style="margin-bottom:10px"><div class="l">This seat</div><div class="n" style="font-size:16px">${leg.name}</div><div class="l">${leg.district} · ${CHAMBERS.find(c=>c[0]===chamber)[1]}</div></div><div class="hint">Also representing this area:</div>${CHAMBERS.map(([ck,cl])=>DATA.officials[ck].map(o=>`<div class="legrow"><span class="sw" style="background:${o.name===leg.name?'var(--teal)':'rgba(148,163,184,.4)'}"></span>${o.name}<span class="pc" style="font-weight:500;color:var(--mut2)">${cl}</span></div>`).join('')).join('')}`;}
 
-const PAGES=['Overview','Who lives here','Health','vs Boston','Elected'];
+const PAGES=['Overview','Who lives here','Health','vs Mattapan','Elected'];
 let _mw=null;
 function mattapanWide(){
  if(_mw)return _mw;
