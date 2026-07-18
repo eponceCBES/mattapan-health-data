@@ -318,6 +318,8 @@ function aggregate(chamber,name){
  const field=NAMEFIELD[chamber], demo=DATA.demographics;
  const tracts=new Set(), precs=[];
  DATA.precincts.forEach(f=>{ if(f.properties[field]===name){ tracts.add(f.properties.tract); precs.push(f);} });
+ // include tracts that have no voting-precinct polygon in the data (counted, just not drawn)
+ (DATA.extraTracts||[]).forEach(o=>{ if(o[field]===name) tracts.add(o.tract); });
  let pop=0,inc=0,pov=0,blk=0,his=0,sen=0;
  tracts.forEach(t=>{const d=demo[t];if(!d)return;const p=d.population||0;pop+=p;inc+=(d.medianIncome||0)*p;pov+=(d.pctPoverty||0)*p;blk+=(d.pctBlack||0)*p;his+=(d.pctHispanic||0)*p;sen+=(d.pctSenior||0)*p;});
  const w=x=>pop?x/pop:0;
