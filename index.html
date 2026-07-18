@@ -412,7 +412,6 @@ function applyTheme(){
  if(b){const SUN='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>';
   const MOON='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.9A9 9 0 1 1 11.1 3a7.2 7.2 0 0 0 9.9 9.9z"/></svg>';
   b.innerHTML=LIGHT?MOON:SUN;b.title=LIGHT?'Switch to dark':'Switch to light';b.setAttribute('aria-label',b.title);}
- try{localStorage.setItem('mtp-theme',LIGHT?'light':'dark');}catch(e){}
  setTiles();restyleMap();
 }
 /* ---- map ---- */
@@ -716,7 +715,7 @@ function initParallax(){
  window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(run);ticking=true;}},{passive:true});run();
 }
 async function boot(){
- try{LIGHT=(localStorage.getItem('mtp-theme')||'dark')==='light';}catch(e){LIGHT=false;}
+ try{LIGHT=(localStorage.getItem('mtp-theme2')||'dark')==='light';}catch(e){LIGHT=false;}
  document.body.classList.toggle('light',LIGHT);
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('barGrid').innerHTML='<div class="loading">Could not load data.</div>';return;}
@@ -724,7 +723,7 @@ async function boot(){
  renderList(); buildMap();
  applyTheme();
  initParallax();
- document.getElementById('themeBtn').onclick=()=>{LIGHT=!LIGHT;applyTheme();};
+ document.getElementById('themeBtn').onclick=()=>{LIGHT=!LIGHT;try{localStorage.setItem('mtp-theme2',LIGHT?'light':'dark');}catch(e){}applyTheme();};
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
  const cs=document.getElementById('condSel');cs.innerHTML=opts;
