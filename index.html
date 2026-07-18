@@ -49,8 +49,13 @@
  .cbox-sub{color:var(--mut2);font-size:13px;margin-top:5px}
  .cbox-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:13px;color:var(--mut2)}
  .cbox-row b{color:var(--ink)}
- .cbox-bars{margin:4px 0 14px}
- .cbox-bars .ccl{width:96px;white-space:nowrap}
+ .cbox-bars{margin:6px 0 14px}
+ .cbar{margin:11px 0}
+ .cbar-top{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-bottom:5px}
+ .cbar-top span:first-child{color:var(--mut2)}
+ .cbar-top .cbar-v{font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums}
+ .cbar-track{height:12px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
+ .cbar-fill{height:100%;border-radius:7px}
  /* legislator explorer */
  .explorer{background:linear-gradient(180deg,#0e1626,#0b1220);border:1px solid var(--line);border-radius:18px;overflow:hidden}
  .exp-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
@@ -500,7 +505,7 @@ function openCard(key){
    <div class="cbox-v" style="color:${worse?'var(--red)':'var(--ink)'}">${V.zcta.value}${unit}</div>
    <div class="cbox-sub">of Mattapan adults${cmpTxt?' · '+cmpTxt:''}</div></div>
    <button class="pop-x" onclick="closeCard()">×</button></div>
-  <div class="cbox-bars">${rows.map(([lab,val])=>{const main=lab==='Mattapan';const g=main?(worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)'):'linear-gradient(90deg,#475569,#64748b)';return `<div class="ccb"><span class="ccl">${lab}</span><div class="cct"><div class="ccf" style="width:${val/max*100}%;background:${g}"></div></div><span class="ccv">${val}${unit}</span></div>`;}).join('')}</div>
+  <div class="cbox-bars">${rows.map(([lab,val])=>{const main=lab==='Mattapan';const g=main?(worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)'):'linear-gradient(90deg,#475569,#64748b)';return `<div class="cbar"><div class="cbar-top"><span>${lab}</span><span class="cbar-v">${val}${unit}</span></div><div class="cbar-track"><div class="cbar-fill" style="width:${val/max*100}%;background:${g}"></div></div></div>`;}).join('')}</div>
   ${range?`<div class="cbox-row"><span>Range across Mattapan's census tracts</span><b>${range}</b></div>`:''}
   <div class="hint">Public data — CDC PLACES (model-based small-area estimates, adults 18+). Compared with Boston, Massachusetts, and the U.S.</div>`;
  document.getElementById('cardModal').classList.add('open');
