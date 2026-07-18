@@ -32,6 +32,16 @@
  .grid.cards-open .card.card-hidden{display:block}
  .more-btn{display:none;margin:16px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--teal);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:650;cursor:pointer;transition:.15s}
  .more-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(45,212,191,.4)}
+ /* compact indicator index */
+ .ix-group{color:var(--mut2);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:20px 0 8px}
+ .ix-list{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;overflow:hidden}
+ .ix-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:13px 16px;cursor:pointer;border-bottom:1px solid rgba(148,163,184,.08);transition:.12s}
+ .ix-row:last-child{border-bottom:0}
+ .ix-row:hover{background:rgba(45,212,191,.06)}
+ .ix-name{font-size:14.5px;font-weight:600}
+ .ix-cmp{font-size:12px;color:var(--mut2);text-align:right}
+ .ix-val{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;min-width:54px;text-align:right}
+ @media(max-width:430px){.ix-cmp{display:none}}
  .card{background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--line);border-radius:16px;padding:20px 22px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
  .card:hover{border-color:rgba(45,212,191,.4);transform:translateY(-2px)}
  .card .k{color:var(--mut);font-size:13.5px;font-weight:600;margin-bottom:8px}
@@ -168,9 +178,10 @@
    </div>
   </div>
 
-  <div class="sec-label">Key health facts — <span style="color:var(--mut);font-weight:500">tap any card for details</span></div>
+  <div class="sec-label">At a glance</div>
   <div id="cards" class="grid"><div class="loading" id="cardsLoad">Loading…</div></div>
-  <button id="cardsMore" class="more-btn"></button>
+  <div class="sec-label" style="margin-top:30px">All health indicators — <span style="color:var(--mut);font-weight:500">tap any for detail</span></div>
+  <div id="hindex"></div>
 
   <div class="explorer">
    <div class="exp-head">
@@ -548,18 +559,42 @@ function exportPDF(){
  w.focus();setTimeout(()=>{try{w.print();}catch(e){}},500);
 }
 
+/* compact indicator index, grouped by category */
+function renderIndex(){
+ const GROUPS=[
+  {t:'Chronic conditions',keys:['hypertension','diabetes','obesity','highchol','chd','stroke','copd','asthma']},
+  {t:'Behaviors & risk factors',keys:['csmoking','lpa']},
+  {t:'Mental health & access',keys:['depression','mental_health','no_insurance']},
+ ];
+ const byKey={};(DATA.health||[]).forEach(m=>byKey[m.meta.key]=m);
+ const used=new Set(); let h='';
+ GROUPS.forEach(g=>{
+  const items=g.keys.filter(k=>byKey[k]);if(!items.length)return;
+  items.forEach(k=>used.add(k));
+  h+=`<div class="ix-group">${g.t}</div><div class="ix-list">`+items.map(k=>ixRow(byKey[k])).join('')+`</div>`;
+ });
+ // any metric not in a defined group
+ const extra=(DATA.health||[]).filter(m=>!used.has(m.meta.key));
+ if(extra.length)h+=`<div class="ix-group">Other</div><div class="ix-list">`+extra.map(ixRow).join('')+`</div>`;
+ const el=document.getElementById('hindex');el.innerHTML=h;
+ el.querySelectorAll('.ix-row').forEach(r=>r.addEventListener('click',()=>openCard(r.dataset.key)));
+}
+function ixRow(m){
+ const z=m.values.zcta.value,c=m.values.city&&m.values.city.value,unit=m.values.zcta.unit||'%',hiw=m.meta.higherIsWorse;
+ const r=c?z/c:null,worse=r&&(hiw?r>1.03:r<0.97),better=r&&(hiw?r<0.97:r>1.03);
+ const cmp=r?`${(r>=1?r:1/r).toFixed(1)}× ${r>=1?'higher':'lower'} than Boston`:'';
+ const col=worse?'var(--red)':(better?'var(--teal)':'var(--ink)');
+ return `<div class="ix-row" data-key="${m.meta.key}"><span class="ix-name">${hlabel(m)}</span><span class="ix-cmp">${cmp}</span><span class="ix-val" style="color:${col}">${z}${unit}</span></div>`;
+}
 async function boot(){
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('cards').innerHTML='<div class="loading">Could not load data.</div>';return;}
  document.getElementById('updated').textContent='Updated Jul 17, 2026.';
+ // At-a-glance: a few headline cards; everything else lives in the compact index below.
+ const HEADLINE=['hypertension','diabetes'];
  const cardsEl=document.getElementById('cards');
- cardsEl.innerHTML=(DATA.health||[]).map(cardHTML).join('')+lifeExpCard();
- // Keep the top clean: show the first 6 indicators + life expectancy, hide the rest behind a toggle.
- const LIMIT=6; let hc=0;
- cardsEl.querySelectorAll('.card').forEach(c=>{if(c.hasAttribute('data-key')){hc++;if(hc>LIMIT)c.classList.add('card-hidden');}});
- const moreBtn=document.getElementById('cardsMore');
- if(hc>LIMIT){moreBtn.style.display='block';moreBtn.textContent=`Show all ${hc} indicators`;
-  moreBtn.onclick=()=>{const open=cardsEl.classList.toggle('cards-open');moreBtn.textContent=open?'Show fewer':`Show all ${hc} indicators`;};}
+ cardsEl.innerHTML=(DATA.health||[]).filter(m=>HEADLINE.includes(m.meta.key)).map(cardHTML).join('')+lifeExpCard();
+ renderIndex();
  renderList(); buildMap();
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
