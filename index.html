@@ -341,7 +341,8 @@ const HLABEL={asthma:'Asthma',checkup:'Yearly check-up',mental_health:'Mental he
 function hlabel(m){return HLABEL[m.meta.key]||m.meta.label;}
 // clean full-condition list for the popup HEALTH page
 function healthList(A){
- return `<div class="hlist">`+(DATA.health||[]).map(m=>{const h=A.health[m.meta.key];if(!h)return'';
+ const sorted=[...(DATA.health||[])].sort((a,b)=>((A.health[b.meta.key]||{}).value??-1)-((A.health[a.meta.key]||{}).value??-1));
+ return `<div class="hlist">`+sorted.map(m=>{const h=A.health[m.meta.key];if(!h)return'';
   const col=m.meta.higherIsWorse?'var(--red)':'var(--teal)';
   return `<div class="hrow"><span class="hl">${hlabel(m)}</span><span class="hv" style="color:${col}">${h.value.toFixed(1)}${h.unit||'%'}</span></div>`;}).join('')
   +`</div><div class="hint">Estimated share of adults in this area.</div>`;}
@@ -687,9 +688,9 @@ function renderBars(){
    <div class="bw-row"><span class="bw-lab">Mattapan</span><div class="bw-track"><div class="bw-fill" style="width:${w(mv)}%;background:linear-gradient(90deg,#fb7185,#f43f5e)"></div></div><span class="bw-v">${mv} yrs</span></div>
    ${hasB?`<div class="bw-row"><span class="bw-lab">Boston</span><div class="bw-track"><div class="bw-fill" style="width:${w(bv)}%;background:linear-gradient(90deg,#475569,#64748b)"></div></div><span class="bw-v">${bv} yrs</span></div>`:''}
   </div></div>`;}
- GROUPS.forEach(g=>{const items=g.keys.filter(k=>byKey[k]&&byKey[k].values.city);if(!items.length)return;items.forEach(k=>used.add(k));
+ GROUPS.forEach(g=>{const items=g.keys.filter(k=>byKey[k]&&byKey[k].values.city).sort((a,b)=>byKey[b].values.zcta.value-byKey[a].values.zcta.value);if(!items.length)return;items.forEach(k=>used.add(k));
    h+=`<div class="ix-group">${g.t}</div><div class="bar-grid">`+items.map(k=>barWidget(byKey[k])).join('')+`</div>`;});
- const extra=(DATA.health||[]).filter(m=>!used.has(m.meta.key)&&m.values.city);
+ const extra=(DATA.health||[]).filter(m=>!used.has(m.meta.key)&&m.values.city).sort((a,b)=>b.values.zcta.value-a.values.zcta.value);
  if(extra.length)h+=`<div class="ix-group">Other</div><div class="bar-grid">`+extra.map(barWidget).join('')+`</div>`;
  const el=document.getElementById('barGrid');el.innerHTML=h;
  el.querySelectorAll('.bw[data-key]').forEach(w=>w.addEventListener('click',()=>openCard(w.dataset.key)));
