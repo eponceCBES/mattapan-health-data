@@ -61,6 +61,7 @@
  .btns{display:flex;gap:10px;flex-shrink:0;margin-top:6px}
  .btn{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.045);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13.5px;font-weight:650;cursor:pointer;transition:.15s;text-decoration:none}
  .btn:hover{background:rgba(255,255,255,.09);border-color:rgba(148,163,184,.3)}
+ #themeBtn{padding:9px 12px}#themeBtn svg{display:block}
  .btn.on{background:rgba(45,212,191,.16);border-color:rgba(45,212,191,.4);color:var(--teal)}
  .sec-label{display:flex;align-items:center;gap:9px;margin:34px 0 16px;font-weight:750;font-size:15.5px}
  .sec-label .ic{color:var(--pink)}
@@ -234,7 +235,7 @@
     <p class="sub">How Mattapan is doing on health and everyday life, next to <b>Boston</b>, the <b>state</b>, and the <b>country</b>. <span id="updated"></span></p>
    </div>
    <div class="btns">
-    <button class="btn" id="themeBtn">Light</button>
+    <button class="btn" id="themeBtn" aria-label="Toggle theme"></button>
     <button class="btn" id="sourcesBtn">Sources</button>
     <button class="btn" id="pdfBtn">Export PDF</button>
    </div>
@@ -394,7 +395,10 @@ function setTiles(){
 function restyleMap(){ if(!LAYER)return; if(MODE==='heat')heatColor(document.getElementById('condSel').value); else if(SEL)highlight(SEL.leg.name,SEL.chamber); else highlight(null); }
 function applyTheme(){
  document.body.classList.toggle('light',LIGHT);
- const b=document.getElementById('themeBtn');if(b)b.textContent=LIGHT?'Dark':'Light';
+ const b=document.getElementById('themeBtn');
+ if(b){const SUN='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>';
+  const MOON='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.9A9 9 0 1 1 11.1 3a7.2 7.2 0 0 0 9.9 9.9z"/></svg>';
+  b.innerHTML=LIGHT?MOON:SUN;b.title=LIGHT?'Switch to dark':'Switch to light';b.setAttribute('aria-label',b.title);}
  try{localStorage.setItem('mtp-theme',LIGHT?'light':'dark');}catch(e){}
  setTiles();restyleMap();
 }
@@ -703,7 +707,6 @@ async function boot(){
  document.body.classList.toggle('light',LIGHT);
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
  catch(e){document.getElementById('barGrid').innerHTML='<div class="loading">Could not load data.</div>';return;}
- document.getElementById('updated').textContent='Updated Jul 2026 — CDC PLACES 2025 release (2023 survey data).';
  renderBars();
  renderList(); buildMap();
  applyTheme();
