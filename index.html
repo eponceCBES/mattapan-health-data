@@ -673,7 +673,14 @@ function renderBars(){
  const byKey={};(DATA.health||[]).forEach(m=>byKey[m.meta.key]=m);
  const used=new Set();
  let h='';
- if(DATA.lifeExpectancy){h+=`<div class="ix-group">Life expectancy</div><div class="bar-grid"><div class="bw" style="cursor:default"><div class="bw-top"><span class="bw-name">Life expectancy</span><span class="bw-x" style="color:var(--mut2)">${DATA.lifeExpectancy.source||'BPHC'}</span></div><div style="font-size:32px;font-weight:850;color:var(--violet);line-height:1">${DATA.lifeExpectancy.value} <span style="font-size:15px;font-weight:700;color:var(--mut)">years</span></div></div></div>`;}
+ if(DATA.lifeExpectancy){const le=DATA.lifeExpectancy,mv=le.value,bv=le.boston,hasB=typeof bv==='number';
+  const base=70,top=Math.max(mv,hasB?bv:mv)+2,w=v=>Math.max(5,(v-base)/(top-base)*100);
+  const cap=hasB?`${(bv-mv).toFixed(1)} years shorter than Boston`:(le.source||'BPHC');
+  h+=`<div class="ix-group">Life expectancy at birth</div><div class="bar-grid"><div class="bw" style="cursor:default">
+   <div class="bw-top"><span class="bw-name">Life expectancy</span><span class="bw-x" style="color:${hasB?'var(--red)':'var(--mut2)'}">${cap}</span></div>
+   <div class="bw-row"><span class="bw-lab">Mattapan</span><div class="bw-track"><div class="bw-fill" style="width:${w(mv)}%;background:linear-gradient(90deg,#fb7185,#f43f5e)"></div></div><span class="bw-v">${mv} yrs</span></div>
+   ${hasB?`<div class="bw-row"><span class="bw-lab">Boston</span><div class="bw-track"><div class="bw-fill" style="width:${w(bv)}%;background:linear-gradient(90deg,#475569,#64748b)"></div></div><span class="bw-v">${bv} yrs</span></div>`:''}
+  </div></div>`;}
  GROUPS.forEach(g=>{const items=g.keys.filter(k=>byKey[k]&&byKey[k].values.city);if(!items.length)return;items.forEach(k=>used.add(k));
    h+=`<div class="ix-group">${g.t}</div><div class="bar-grid">`+items.map(k=>barWidget(byKey[k])).join('')+`</div>`;});
  const extra=(DATA.health||[]).filter(m=>!used.has(m.meta.key)&&m.values.city);
