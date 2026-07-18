@@ -36,9 +36,24 @@
  .card .cmp{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:var(--mut)}.card .cmp .ar{font-weight:800}
  .card.worse .cmp .ar{color:var(--red)}.card.good .cmp .ar{color:var(--teal)}
  .card .tag{display:inline-flex;gap:5px;margin-top:11px;font-size:11.5px;font-weight:700;color:var(--red);opacity:.9}.card .tag.ok{color:var(--teal)}
+ .card .card-more{margin-top:12px;font-size:11px;font-weight:650;color:var(--mut2);opacity:0;transition:.18s}
+ .card:hover .card-more{opacity:1;color:var(--teal)}
+ @media(hover:none){.card .card-more{opacity:.8}}
+ /* card detail modal (centered) */
+ .cmodal{position:fixed;inset:0;background:rgba(5,8,14,.66);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:950;padding:20px}
+ .cmodal.open{display:flex}
+ .cbox{width:min(460px,94vw);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#111a2b,var(--pop));border:1px solid rgba(148,163,184,.28);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.75);padding:22px;animation:popIn .18s ease}
+ .cbox-head{display:flex;justify-content:space-between;gap:10px;position:relative;margin-bottom:16px}
+ .cbox-k{color:var(--mut);font-size:14px;font-weight:600}
+ .cbox-v{font-size:42px;font-weight:850;line-height:1;margin-top:5px}
+ .cbox-sub{color:var(--mut2);font-size:13px;margin-top:5px}
+ .cbox-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:13px;color:var(--mut2)}
+ .cbox-row b{color:var(--ink)}
+ .cbox-bars{margin:4px 0 14px}
  /* legislator explorer */
  .explorer{background:linear-gradient(180deg,#0e1626,#0b1220);border:1px solid var(--line);border-radius:18px;overflow:hidden}
- .exp-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+ .exp-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+ .exp-head .btns{flex-shrink:0}
  .exp-head .t{font-weight:750}
  .exp-title-wrap{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
  .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);color:var(--teal);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -181,6 +196,7 @@
  </div>
 
  <div class="modal" id="popModal"><div class="pop" id="popBox"></div></div>
+ <div class="cmodal" id="cardModal"><div class="cbox" id="cardBox"></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -197,7 +213,7 @@ function ratio(z,c,hiw){if(!c||!z)return{txt:'',near:true,worse:false,good:false
 function cardHTML(m){const z=m.values.zcta,c=m.values.city,hiw=m.meta.higherIsWorse,rt=ratio(z.value,c&&c.value,hiw);
  const cls=rt.near?'neutral':(rt.worse?'worse':(rt.good?'good':'neutral'));
  const tag=(hiw&&rt.worse)?`<div class="tag">elevated risk</div>`:(rt.good?`<div class="tag ok">better than Boston</div>`:'');
- return `<div class="card ${cls}"><div class="k">${m.meta.label}</div><div class="v">${z.value}${z.unit}</div><div class="cmp">${rt.txt}</div>${tag}</div>`;}
+ return `<div class="card ${cls}" data-key="${m.meta.key}"><div class="k">${m.meta.label}</div><div class="v">${z.value}${z.unit}</div><div class="cmp">${rt.txt}</div>${tag}<div class="card-more">Tap for detail</div></div>`;}
 function lifeExpCard(){if(!DATA.lifeExpectancy)return'';const le=DATA.lifeExpectancy;
  return `<div class="card neutral" style="cursor:default"><div class="k">Life expectancy</div><div class="v" style="color:var(--violet)">${le.value} <span style="font-size:20px;font-weight:700;color:var(--mut)">yrs</span></div><div class="cmp">Mattapan · BPHC</div><div class="tag" style="color:var(--mut2)">Health of Boston 2023</div></div>`;}
 
@@ -428,7 +444,9 @@ function buildReportHTML(){
   .stat{border:1px solid #e2e8f0;border-radius:8px;padding:9pt 11pt}
   .stat .n{font-family:Helvetica,Arial,sans-serif;font-size:16pt;font-weight:800;color:#0f172a}
   .stat .l{font-family:Helvetica,Arial,sans-serif;font-size:8.5pt;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2pt}
-  .src{font-size:9.5pt} .src li{margin:4pt 0} .url{color:#0d9488;word-break:break-all}
+  .src{font-size:9.5pt} .src li{margin:4pt 0;page-break-inside:avoid;break-inside:avoid} .url{color:#0d9488;word-break:break-all}
+  h2{page-break-after:avoid;break-after:avoid}
+  .pagebreak{page-break-before:always;break-before:page}
   .foot{position:fixed;bottom:8mm;left:20mm;right:20mm;font-family:Helvetica,Arial,sans-serif;font-size:8pt;color:#94a3b8;display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:4pt}
   @media print{.noprint{display:none}}
  </style></head><body>
@@ -461,11 +479,36 @@ function buildReportHTML(){
   <h2>Who represents Mattapan</h2>
   <table><tbody>${offrows}</tbody></table>
 
-  <h2>Sources</h2>
+  <h2 class="pagebreak">Sources</h2>
   <ol class="src">${src}</ol>
 
   <div class="foot"><span>Mattapan Health &amp; Community — Neighborhood Profile</span><span>Public data · CDC, BPHC, U.S. Census</span></div>
  </body></html>`;
+}
+/* ---- health-card detail popup (Mattapan vs Boston / MA / US) ---- */
+function openCard(key){
+ const m=(DATA.health||[]).find(h=>h.meta.key===key);if(!m)return;
+ const V=m.values,unit=(V.zcta&&V.zcta.unit)||'%',hiw=m.meta.higherIsWorse;
+ const rows=[['Mattapan',V.zcta&&V.zcta.value],['Boston',V.city&&V.city.value],['Massachusetts',V.state&&V.state.value],['United States',V.nation&&V.nation.value]].filter(r=>typeof r[1]==='number');
+ const max=Math.max(...rows.map(r=>r[1]))*1.15||1;
+ const c=V.city&&V.city.value,r=c?V.zcta.value/c:null,worse=r&&(hiw?r>1.03:r<0.97);
+ const cmpTxt=r?`${(r>=1?r:1/r).toFixed(1)}× ${r>=1?'higher':'lower'} than Boston`:'';
+ let range='';if(m.byTract){const vals=Object.values(m.byTract).map(o=>o&&o.value).filter(v=>typeof v==='number');if(vals.length)range=`${Math.min(...vals).toFixed(1)}${unit} – ${Math.max(...vals).toFixed(1)}${unit}`;}
+ document.getElementById('cardBox').innerHTML=`
+  <div class="cbox-head"><div><div class="cbox-k">${m.meta.label}</div>
+   <div class="cbox-v" style="color:${worse?'var(--red)':'var(--ink)'}">${V.zcta.value}${unit}</div>
+   <div class="cbox-sub">of Mattapan adults${cmpTxt?' · '+cmpTxt:''}</div></div>
+   <button class="pop-x" onclick="closeCard()">×</button></div>
+  <div class="cbox-bars">${rows.map(([lab,val])=>{const main=lab==='Mattapan';const g=main?(worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)'):'linear-gradient(90deg,#475569,#64748b)';return `<div class="ccb"><span class="ccl">${lab}</span><div class="cct"><div class="ccf" style="width:${val/max*100}%;background:${g}"></div></div><span class="ccv">${val}${unit}</span></div>`;}).join('')}</div>
+  ${range?`<div class="cbox-row"><span>Range across Mattapan's census tracts</span><b>${range}</b></div>`:''}
+  <div class="hint">Public data — CDC PLACES (model-based small-area estimates, adults 18+). Compared with Boston, Massachusetts, and the U.S.</div>`;
+ document.getElementById('cardModal').classList.add('open');
+}
+function closeCard(){document.getElementById('cardModal').classList.remove('open');}
+function openSources(){
+ const src=(DATA.sources||[]).map(s=>`<div class="cbox-row"><span>${s.source||s.label||''}${s.vintage?' · '+s.vintage:''}</span>${s.url?`<a href="${s.url}" target="_blank" style="color:var(--teal);text-decoration:none;white-space:nowrap">link</a>`:''}</div>`).join('');
+ document.getElementById('cardBox').innerHTML=`<div class="cbox-head"><div class="cbox-k">Data sources</div><button class="pop-x" onclick="closeCard()">×</button></div>${src||'<div class="hint">No sources listed.</div>'}<div class="hint" style="margin-top:12px">All figures are public data. No CBES / JPNDC data is used on this page.</div>`;
+ document.getElementById('cardModal').classList.add('open');
 }
 function exportPDF(){
  const w=window.open('','_blank');
@@ -490,7 +533,11 @@ async function boot(){
  document.getElementById('foot').innerHTML=`${(DATA.health||[]).length} health indicators · ${Object.keys(DATA.demographics||{}).length} census tracts · ${(DATA.precincts||[]).length} precincts · sources: CDC PLACES, ACS.`;
  document.getElementById('popModal').addEventListener('click',e=>{if(e.target.id==='popModal')closePop();});
  document.getElementById('pdfBtn').onclick=exportPDF;
- document.addEventListener('keydown',e=>{if(!SEL)return;if(e.key==='Escape')closePop();if(e.key==='ArrowRight')turn(1);if(e.key==='ArrowLeft')turn(-1);});
+ // health-card detail popups + sources popup
+ document.querySelectorAll('.card[data-key]').forEach(el=>el.addEventListener('click',()=>openCard(el.dataset.key)));
+ document.getElementById('cardModal').addEventListener('click',e=>{if(e.target.id==='cardModal')closeCard();});
+ document.getElementById('sourcesBtn').onclick=openSources;
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCard();if(!SEL)return;if(e.key==='Escape')closePop();if(e.key==='ArrowRight')turn(1);if(e.key==='ArrowLeft')turn(-1);});
  // swipe the carousel on touch devices
  let tx=0;const pb=document.getElementById('popBox');
  pb.addEventListener('touchstart',e=>{tx=e.changedTouches[0].clientX;},{passive:true});
