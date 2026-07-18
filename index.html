@@ -14,7 +14,45 @@
  *{box-sizing:border-box}
  body{margin:0;background:radial-gradient(1200px 700px at 80% -10%,#12203a 0%,var(--bg) 55%);
   color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;min-height:100vh}
+  -webkit-font-smoothing:antialiased;min-height:100vh;transition:background .4s,color .4s}
+ /* ---------- parallax decorative background ---------- */
+ .bg-decor{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+ .blob{position:absolute;border-radius:50%;filter:blur(74px);opacity:.5;will-change:transform;transition:background .4s,opacity .4s}
+ .b1{width:540px;height:540px;background:radial-gradient(circle,#1e40af,transparent 70%);top:-130px;right:-90px}
+ .b2{width:460px;height:460px;background:radial-gradient(circle,#0e7490,transparent 70%);top:42%;left:-150px}
+ .b3{width:400px;height:400px;background:radial-gradient(circle,#6d28d9,transparent 70%);bottom:-120px;right:18%}
+ /* ---------- light (blue) theme ---------- */
+ body.light{
+  --bg:#e9f1fb; --card:#ffffff; --card2:#eff6fe; --pop:#ffffff;
+  --line:rgba(37,99,235,.14); --ink:#12314f; --mut:#51708f; --mut2:#8199b5;
+  --teal:#2563eb; --pink:#db2777; --red:#dc2626; --amber:#b45309; --violet:#7c3aed; --blue:#2563eb;
+  background:radial-gradient(1100px 640px at 82% -12%,#cfe0fb 0%,#e9f1fb 55%);color:var(--ink)}
+ body.light .b1{background:radial-gradient(circle,#93c5fd,transparent 70%);opacity:.62}
+ body.light .b2{background:radial-gradient(circle,#7dd3fc,transparent 70%);opacity:.55}
+ body.light .b3{background:radial-gradient(circle,#c4b5fd,transparent 70%);opacity:.5}
+ body.light .btn{background:#fff;border-color:rgba(37,99,235,.18);box-shadow:0 1px 3px rgba(30,64,140,.07)}
+ body.light .btn:hover{background:#eef5ff;border-color:rgba(37,99,235,.4)}
+ body.light .btn.on{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.5);color:#1d4ed8}
+ body.light .explorer{background:linear-gradient(180deg,#ffffff,#f4f9ff);box-shadow:0 18px 50px rgba(30,64,140,.10)}
+ body.light .exp-hint{background:#f4f9ff}
+ body.light .chip{background:rgba(37,99,235,.1);border-color:rgba(37,99,235,.25);color:#1d4ed8}
+ body.light .card,body.light .ix-list,body.light .bw,body.light .compare-card{box-shadow:0 8px 24px rgba(30,64,140,.08)}
+ body.light .card:hover,body.light .bw[data-key]:hover{border-color:rgba(37,99,235,.45)}
+ body.light .leg:hover{background:rgba(37,99,235,.06)}
+ body.light .leg.active{background:rgba(37,99,235,.1);box-shadow:inset 0 0 0 1px rgba(37,99,235,.4)}
+ body.light .leg .av,body.light .pop-head .av{background:linear-gradient(135deg,#dbe7f8,#bcd3ef);color:#5b7791}
+ body.light #map,body.light .leaflet-container{background:#dbe7f5}
+ body.light .cond-sel,body.light .bw-track,body.light .cbar-track,body.light .ccb .cct,body.light .stbox{background:#e6eef9}
+ body.light .cond-sel option{background:#fff;color:var(--ink)}
+ body.light .heat-card{background:rgba(255,255,255,.95);box-shadow:0 12px 34px rgba(30,64,140,.16)}
+ body.light .heat-lbl{color:#0f2744;text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 3px rgba(255,255,255,.9)}
+ body.light .pop,body.light .cbox{background:linear-gradient(180deg,#ffffff,#f5faff);border-color:rgba(37,99,235,.2);box-shadow:0 30px 90px rgba(30,64,140,.22)}
+ body.light .car-nav{background:#f4f9ff}
+ body.light .car-nav button:hover{background:rgba(37,99,235,.08);color:var(--ink)}
+ body.light .cmodal{background:rgba(20,49,79,.42)}
+ body.light .leaflet-popup.heat-pop .leaflet-popup-content-wrapper,body.light .leaflet-popup.heat-pop .leaflet-popup-tip{background:#fff;color:var(--ink)}
+ body.light .more-btn{background:#fff}
+ .card,.bw,.ix-list,.explorer,.pop,.cbox{transition:background .4s,border-color .2s,box-shadow .4s,transform .15s}
  .wrap{max-width:1240px;margin:0 auto;padding:34px 26px 80px}
  .eyebrow{display:inline-flex;align-items:center;gap:7px;color:var(--teal);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
  h1{font-size:44px;line-height:1.02;margin:0 0 10px;font-weight:850;letter-spacing:-.5px}
@@ -187,6 +225,7 @@
 </style>
 </head>
 <body>
+ <div class="bg-decor" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i></div>
  <div class="wrap">
   <div class="topbar">
    <div>
@@ -195,6 +234,7 @@
     <p class="sub">How Mattapan is doing on health and everyday life, next to <b>Boston</b>, the <b>state</b>, and the <b>country</b>. <span id="updated"></span></p>
    </div>
    <div class="btns">
+    <button class="btn" id="themeBtn">Light</button>
     <button class="btn" id="sourcesBtn">Sources</button>
     <button class="btn" id="pdfBtn">Export PDF</button>
    </div>
@@ -273,7 +313,7 @@ function aggregate(chamber,name){
 
 function donutSVG(black,hisp,residents){const other=Math.max(0,100-black-hisp);const parts=[['Black',black,COLORS[0]],['Hispanic / Latino',hisp,COLORS[1]],['Other races',other,COLORS[2]]];
  const R=52,C=2*Math.PI*R;let off=0;const segs=parts.map(([_,v,col])=>{const len=C*v/100;const s=`<circle r="${R}" cx="65" cy="65" fill="none" stroke="${col}" stroke-width="20" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 65 65)"/>`;off+=len;return s;}).join('');
- return`<div class="donut-row"><svg width="130" height="130" viewBox="0 0 130 130"><circle r="${R}" cx="65" cy="65" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="20"/>${segs}<text x="65" y="60" text-anchor="middle" fill="#e5edf7" font-size="17" font-weight="800">${(residents||0).toLocaleString()}</text><text x="65" y="76" text-anchor="middle" fill="#94a3b8" font-size="8.5" font-weight="600" letter-spacing=".08em">RESIDENTS</text></svg><div style="flex:1">${parts.map(([l,v,c])=>`<div class="legrow"><span class="sw" style="background:${c}"></span>${l}<span class="pc">${v.toFixed(1)}%</span></div>`).join('')}</div></div>`;}
+ return`<div class="donut-row"><svg width="130" height="130" viewBox="0 0 130 130"><circle r="${R}" cx="65" cy="65" fill="none" stroke="var(--line)" stroke-width="20"/>${segs}<text x="65" y="60" text-anchor="middle" fill="var(--ink)" font-size="17" font-weight="800">${(residents||0).toLocaleString()}</text><text x="65" y="76" text-anchor="middle" fill="var(--mut)" font-size="8.5" font-weight="600" letter-spacing=".08em">RESIDENTS</text></svg><div style="flex:1">${parts.map(([l,v,c])=>`<div class="legrow"><span class="sw" style="background:${c}"></span>${l}<span class="pc">${v.toFixed(1)}%</span></div>`).join('')}</div></div>`;}
 
 function healthBars(A,keys){
  return keys.map(k=>{const h=A.health[k];if(!h)return'';const max=Math.max(h.value,h.zcta,50);const w=Math.min(100,h.value/max*100);const rw=Math.min(100,h.zcta/max*100);
@@ -342,19 +382,35 @@ function closePop(){document.getElementById('popModal').classList.remove('open')
 // Full deselect (clear the map highlight too) — used when switching to heat mode.
 function deselect(){closePop();SEL=null;if(LAYER)highlight(null);document.querySelectorAll('.leg.active').forEach(e=>e.classList.remove('active'));}
 
+/* ---- theme ---- */
+let LIGHT=false, TILE=null;
+function mc(){return LIGHT?{stroke:'#9db4d6',fill:'#c9dbf2',accent:'#2563eb'}:{stroke:'#334155',fill:'#1e293b',accent:'#2dd4bf'};}
+function setTiles(){
+ if(!MAP)return;
+ if(TILE)MAP.removeLayer(TILE);
+ const url=LIGHT?'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+ TILE=L.tileLayer(url,{maxZoom:19}).addTo(MAP);if(TILE.bringToBack)TILE.bringToBack();
+}
+function restyleMap(){ if(!LAYER)return; if(MODE==='heat')heatColor(document.getElementById('condSel').value); else if(SEL)highlight(SEL.leg.name,SEL.chamber); else highlight(null); }
+function applyTheme(){
+ document.body.classList.toggle('light',LIGHT);
+ const b=document.getElementById('themeBtn');if(b)b.textContent=LIGHT?'Dark':'Light';
+ try{localStorage.setItem('mtp-theme',LIGHT?'light':'dark');}catch(e){}
+ setTiles();restyleMap();
+}
 /* ---- map ---- */
 let LAYER=null;
 function highlight(name,chamber){
- if(!MAP||!LAYER)return;
+ if(!MAP||!LAYER)return;const C=mc();
  LAYER.eachLayer(l=>{const p=l.feature.properties;const on=name&&p[NAMEFIELD[chamber]]===name;
-  l.setStyle({color:on?'#2dd4bf':'#334155',weight:on?2:.7,fillColor:on?'#2dd4bf':'#1e293b',fillOpacity:on?.38:.12});});
+  l.setStyle({color:on?C.accent:C.stroke,weight:on?2:.7,fillColor:on?C.accent:C.fill,fillOpacity:on?.38:.12});});
 }
 function buildMap(){
  MAP=L.map('map',{zoomControl:false,attributionControl:false}).setView([42.276,-71.09],13);
  L.control.zoom({position:'bottomright'}).addTo(MAP);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(MAP);
+ setTiles();
  LAYER=L.geoJSON({type:'FeatureCollection',features:DATA.precincts},{
-  style:{color:'#334155',weight:.7,fillColor:'#1e293b',fillOpacity:.12},
+  style:()=>{const C=mc();return{color:C.stroke,weight:.7,fillColor:C.fill,fillOpacity:.12};},
   onEachFeature:(f,l)=>{l.on('click',()=>{if(MODE==='heat')return;const p=f.properties;selectLeg('house',{name:p.rep_name,district:'',url:null});});}
  }).addTo(MAP);
  try{MAP.fitBounds(LAYER.getBounds(),{padding:[20,20]});}catch(e){}
@@ -377,7 +433,7 @@ function heatColor(key){
  LAYER.eachLayer(l=>{const t=l.feature.properties.tract,bt=m.byTract[t];
   if(bt&&typeof bt.value==='number'){l.setStyle({color:'#0b1220',weight:.6,fillColor:heatRGB((bt.value-mn)/rng),fillOpacity:.78});
    l.bindPopup(`<b>${hlabel(m)}</b><br>${bt.value.toFixed(1)}${unit} of adults · tract ${t}`,{className:'heat-pop'});
-  }else{l.setStyle({color:'#334155',weight:.6,fillColor:'#1e293b',fillOpacity:.12});l.unbindPopup();}});
+  }else{const C=mc();l.setStyle({color:C.stroke,weight:.6,fillColor:C.fill,fillOpacity:.12});l.unbindPopup();}});
  // one % label per census tract, at the tract's centroid
  if(!HEATLABELS)HEATLABELS=L.layerGroup().addTo(MAP);HEATLABELS.clearLayers();
  const seen={};
@@ -399,7 +455,7 @@ function setMode(mode){
  document.querySelector('.exp-body').classList.toggle('heat',mode==='heat');
  if(mode==='heat'){deselect();document.getElementById('heatCard').style.display='block';heatColor(document.getElementById('condSel').value);}
  else{document.getElementById('heatCard').style.display='none';if(HEATLABELS)HEATLABELS.clearLayers();
-  LAYER.eachLayer(l=>{l.unbindPopup();l.setStyle({color:'#334155',weight:.7,fillColor:'#1e293b',fillOpacity:.12});});
+  LAYER.eachLayer(l=>{const C=mc();l.unbindPopup();l.setStyle({color:C.stroke,weight:.7,fillColor:C.fill,fillOpacity:.12});});
   if(SEL)highlight(SEL.leg.name,SEL.chamber);else highlight(null);}
  if(MAP)setTimeout(()=>MAP.invalidateSize(),60);
 }
@@ -637,12 +693,22 @@ function ixRow(m){
  const col=worse?'var(--red)':(better?'var(--teal)':'var(--ink)');
  return `<div class="ix-row" data-key="${m.meta.key}"><span class="ix-name">${hlabel(m)}</span><span class="ix-cmp">${cmp}</span><span class="ix-val" style="color:${col}">${z}${unit}</span></div>`;
 }
+function initParallax(){
+ const specs=[['.b1',-.18],['.b2',.12],['.b3',-.1]];let ticking=false;
+ const run=()=>{const y=window.scrollY||window.pageYOffset;specs.forEach(([s,f])=>{const el=document.querySelector(s);if(el)el.style.transform=`translate3d(0,${(y*f).toFixed(1)}px,0)`;});ticking=false;};
+ window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(run);ticking=true;}},{passive:true});run();
+}
 async function boot(){
+ try{LIGHT=(localStorage.getItem('mtp-theme')||'light')==='light';}catch(e){LIGHT=true;}
+ document.body.classList.toggle('light',LIGHT);
  try{DATA=await (await fetch('./data/mattapan_data.json',{cache:'no-store'})).json();}
- catch(e){document.getElementById('cards').innerHTML='<div class="loading">Could not load data.</div>';return;}
+ catch(e){document.getElementById('barGrid').innerHTML='<div class="loading">Could not load data.</div>';return;}
  document.getElementById('updated').textContent='Updated Jul 17, 2026.';
  renderBars();
  renderList(); buildMap();
+ applyTheme();
+ initParallax();
+ document.getElementById('themeBtn').onclick=()=>{LIGHT=!LIGHT;applyTheme();};
  // condition selector for heat map (metrics with per-tract data only)
  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
  const cs=document.getElementById('condSel');cs.innerHTML=opts;
