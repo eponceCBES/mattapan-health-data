@@ -55,13 +55,26 @@
   #map{width:100%;height:100%;min-height:440px;background:#0b1220}
   .cond-sel{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 11px;font-size:13px;font-weight:600;cursor:pointer;max-width:60vw}
   .cond-sel option{background:#0f1729;color:var(--ink)}
-  .heat-legend{display:none;position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(9,14,24,.9);border:1px solid var(--line);border-radius:12px;padding:11px 13px;backdrop-filter:blur(6px);max-width:230px}
-  .heat-legend .hl-t{font-size:12px;font-weight:750;margin-bottom:7px;color:var(--ink)}
-  .heat-legend .hl-bar{height:9px;border-radius:5px;background:linear-gradient(90deg,#34d399,#fbbf24,#f43f5e)}
-  .heat-legend .hl-sc{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut2);margin-top:4px}
-  .heat-legend .hl-note{font-size:10px;color:var(--mut);margin-top:5px}
-  .leaflet-tooltip.heat-tt{background:#0b1220;border:1px solid var(--line);color:var(--ink);font-size:11.5px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
-  .leaflet-tooltip.heat-tt::before{display:none}
+  .heat-card{display:none;position:absolute;left:12px;top:12px;z-index:500;background:rgba(9,14,24,.92);border:1px solid var(--line);border-radius:14px;padding:13px 14px;backdrop-filter:blur(7px);width:250px;max-width:70%;box-shadow:0 12px 34px rgba(0,0,0,.5)}
+  .heat-card .hc-t{font-size:13.5px;font-weight:750;margin-bottom:9px;color:var(--ink)}
+  .heat-card .cond-sel{width:100%;margin-bottom:10px}
+  .heat-card .hc-bar{height:10px;border-radius:6px;background:linear-gradient(90deg,#2563eb,#22d3ee,#fbbf24,#ef4444)}
+  .heat-card .hc-sc{display:flex;justify-content:space-between;font-size:11px;color:var(--mut2);margin-top:5px}
+  .heat-card .hc-note{font-size:10.5px;color:var(--mut);margin-top:7px;line-height:1.4}
+  .heat-lbl{font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9);text-align:center;white-space:nowrap;pointer-events:none}
+  .leaflet-popup.heat-pop .leaflet-popup-content-wrapper{background:#0b1220;color:var(--ink);border:1px solid var(--line);border-radius:10px}
+  .leaflet-popup.heat-pop .leaflet-popup-tip{background:#0b1220}
+  .compare-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:22px}
+  .cc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .cc-head .cc-sub{color:var(--mut2);font-size:13px}
+  .cc-big{font-size:34px;font-weight:850;line-height:1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cc-big .cc-lbl{font-size:13px;font-weight:600;color:var(--mut2)}
+  .cc-bars{margin:14px 0 4px}
+  .ccb{display:flex;align-items:center;gap:10px;margin:7px 0}
+  .ccb .ccl{width:64px;font-size:12px;color:var(--mut2);flex-shrink:0}
+  .ccb .cct{flex:1;height:12px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
+  .ccb .ccf{height:100%;border-radius:7px}
+  .ccb .ccv{width:52px;text-align:right;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums}
   .leaflet-container{background:#0b1220}
   /* popup */
   /* Docked side panel — transparent backdrop so the highlighted map district stays visible. */
@@ -87,6 +100,11 @@
   .dots{display:flex;gap:6px;justify-content:center;padding:12px}
   .dots i{width:7px;height:7px;border-radius:50%;background:rgba(148,163,184,.3)}
   .dots i.on{background:var(--teal);width:20px;border-radius:5px}
+  .hlist{display:flex;flex-direction:column}
+  .hrow{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid rgba(148,163,184,.09)}
+  .hrow:last-child{border-bottom:0}
+  .hrow .hl{font-size:14px;color:var(--ink)}
+  .hrow .hv{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
   .donut-row{display:flex;align-items:center;gap:18px}
   .legrow{display:flex;align-items:center;gap:8px;font-size:13px;margin:5px 0}
   .legrow .sw{width:10px;height:10px;border-radius:3px}
@@ -130,13 +148,26 @@
         <div class="btns">
           <button class="btn on" id="tabLeg" onclick="setMode('leg')">📍 Legislators</button>
           <button class="btn" id="tabHeat" onclick="setMode('heat')">🔥 Heat map</button>
-          <div id="condWrap" style="display:none"><select id="condSel" class="cond-sel" onchange="heatColor(this.value)"></select></div>
         </div>
       </div>
       <div class="exp-body">
         <div class="leg-list" id="legList"><div class="leg-hint">Tap a name for their district dashboard ↗</div></div>
-        <div class="map-col"><div id="map"></div><div id="heatLegend" class="heat-legend"></div></div>
+        <div class="map-col"><div id="map"></div>
+          <div id="heatCard" class="heat-card">
+            <div class="hc-t">🔥 Health hot spots</div>
+            <select id="condSel" class="cond-sel" onchange="heatColor(this.value)"></select>
+            <div class="hc-bar"></div>
+            <div class="hc-sc"><span id="hcMin"></span><span id="hcMax"></span></div>
+            <div class="hc-note">Darker red = higher rate. Tap an area for detail.</div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <div class="sec-label"><span class="ic">📊</span> Mattapan vs Boston — pick a condition</div>
+    <div class="compare-card">
+      <div class="cc-head"><select id="cmpSel" class="cond-sel"></select><span class="cc-sub">— where Mattapan stands</span></div>
+      <div id="cmpBody"></div>
     </div>
 
     <div class="foot" id="foot"></div>
@@ -184,15 +215,24 @@ function healthBars(A,keys){
     return`<div class="hbar"><div class="top"><span>${h.label}</span><span class="val" style="color:${h.hiw?'var(--red)':'var(--teal)'}">${h.value.toFixed(1)}${h.unit}</span></div><div class="track"><div class="fill" style="width:${w}%;background:${h.hiw?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)'}"></div><div class="ref" style="left:${rw}%" title="Mattapan ${h.zcta}%"></div></div></div>`;}).join('')
     +`<div class="hint">Bars = this district (aggregated from CDC PLACES tract estimates). The line marks the Mattapan-wide rate.</div>`;}
 
+// friendlier display labels to match the published site
+const HLABEL={asthma:'Asthma',checkup:'Yearly check-up',mental_health:'Mental health struggles'};
+function hlabel(m){return HLABEL[m.meta.key]||m.meta.label;}
+// clean full-condition list for the popup HEALTH page
+function healthList(A){
+  return `<div class="hlist">`+(DATA.health||[]).map(m=>{const h=A.health[m.meta.key];if(!h)return'';
+    const col=m.meta.higherIsWorse?'var(--red)':'var(--teal)';
+    return `<div class="hrow"><span class="hl">${hlabel(m)}</span><span class="hv" style="color:${col}">${h.value.toFixed(1)}${h.unit||'%'}</span></div>`;}).join('')
+    +`</div><div class="hint">💗 Estimated share of adults in this area.</div>`;}
+
 function pageHTML(A,leg,chamber){
   if(PAGE===0){return `${donutSVG(A.pctBlack,A.pctHispanic,A.residents)}<div class="stat2"><div class="stbox"><div class="n">$${A.medianIncome.toLocaleString()}</div><div class="l">Median income</div></div><div class="stbox warn"><div class="n">${A.pctPoverty.toFixed(1)}%</div><div class="l">Below poverty</div></div></div><div class="hint">Covers ${A.precinctCount} voting precinct${A.precinctCount!==1?'s':''} in Mattapan.</div>`;}
   if(PAGE===1){return `<div class="stat2"><div class="stbox"><div class="n">${A.pctSenior.toFixed(1)}%</div><div class="l">Seniors 65+</div></div><div class="stbox"><div class="n">${A.residents.toLocaleString()}</div><div class="l">Residents</div></div><div class="stbox"><div class="n">${A.pctBlack.toFixed(1)}%</div><div class="l">Black</div></div><div class="stbox"><div class="n">${A.pctHispanic.toFixed(1)}%</div><div class="l">Hispanic / Latino</div></div></div><div class="hint">American Community Survey, aggregated across the district's census tracts.</div>`;}
-  if(PAGE===2){return healthBars(A,['hypertension','diabetes','obesity','asthma','mental_health']);}
-  if(PAGE===3){return healthBars(A,['no_insurance','checkup','chd']);}
-  if(PAGE===4){return compareHTML(A);}
+  if(PAGE===2){return healthList(A);}
+  if(PAGE===3){return compareHTML(A);}
   return `<div class="stbox" style="margin-bottom:10px"><div class="l">This seat</div><div class="n" style="font-size:16px">${leg.name}</div><div class="l">${leg.district} · ${CHAMBERS.find(c=>c[0]===chamber)[1]}</div></div><div class="hint">Also representing this area:</div>${CHAMBERS.map(([ck,cl])=>DATA.officials[ck].map(o=>`<div class="legrow"><span class="sw" style="background:${o.name===leg.name?'var(--teal)':'rgba(148,163,184,.4)'}"></span>${o.name}<span class="pc" style="font-weight:500;color:var(--mut2)">${cl}</span></div>`).join('')).join('')}`;}
 
-const PAGES=['Overview','Who lives here','Health','Access & prevention','vs Mattapan','Elected'];
+const PAGES=['Overview','Who lives here','Health','vs Boston','Elected'];
 let _mw=null;
 function mattapanWide(){
   if(_mw)return _mw;
@@ -243,7 +283,8 @@ function highlight(name,chamber){
     l.setStyle({color:on?'#2dd4bf':'#334155',weight:on?2:.7,fillColor:on?'#2dd4bf':'#1e293b',fillOpacity:on?.38:.12});});
 }
 function buildMap(){
-  MAP=L.map('map',{zoomControl:true,attributionControl:false}).setView([42.276,-71.09],13);
+  MAP=L.map('map',{zoomControl:false,attributionControl:false}).setView([42.276,-71.09],13);
+  L.control.zoom({position:'bottomright'}).addTo(MAP);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(MAP);
   LAYER=L.geoJSON({type:'FeatureCollection',features:DATA.precincts},{
     style:{color:'#334155',weight:.7,fillColor:'#1e293b',fillOpacity:.12},
@@ -253,34 +294,57 @@ function buildMap(){
 }
 
 /* ---- heat map by condition ---- */
-let MODE='leg';
-function heatRGB(t){ // t 0..1 → green→amber→red
-  const stops=[[52,211,153],[251,191,36],[244,63,94]];
-  const seg=t<.5?0:1,lt=t<.5?t/.5:(t-.5)/.5,a=stops[seg],b=stops[seg+1];
+let MODE='leg', HEATLABELS=null;
+function heatRGB(t){ // 0..1 → blue → cyan → amber → red (diverging, low=blue high=red)
+  t=Math.max(0,Math.min(1,t));const s=[[37,99,235],[34,211,238],[251,191,36],[239,68,68]],n=s.length-1;
+  const seg=Math.min(n-1,Math.floor(t*n)),lt=t*n-seg,a=s[seg],b=s[seg+1];
   return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*lt)).join(',')})`;
 }
+function allPts(c,out){if(Array.isArray(c)&&typeof c[0]==='number'){out.push(c);return;}if(Array.isArray(c))c.forEach(x=>allPts(x,out));}
+function featCentroid(f){const out=[];allPts(f.geometry.coordinates,out);if(!out.length)return null;let x=0,y=0;out.forEach(p=>{x+=p[0];y+=p[1];});return[y/out.length,x/out.length];}
 function heatColor(key){
   const m=(DATA.health||[]).find(h=>h.meta.key===key);if(!m||!m.byTract||!LAYER)return;
   const unit=(m.values.zcta&&m.values.zcta.unit)||'%';
   const vals=Object.values(m.byTract).map(o=>o&&o.value).filter(v=>typeof v==='number');
-  const mn=Math.min(...vals),mx=Math.max(...vals);
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx>mn?mx-mn:1;
   LAYER.eachLayer(l=>{const t=l.feature.properties.tract,bt=m.byTract[t];
-    if(bt&&typeof bt.value==='number'){const norm=mx>mn?(bt.value-mn)/(mx-mn):.5;const shade=m.meta.higherIsWorse?norm:1-norm;
-      l.setStyle({color:'#0b1220',weight:.6,fillColor:heatRGB(shade),fillOpacity:.74});
-      l.bindTooltip(`<b>${m.meta.label}</b><br>${bt.value.toFixed(1)}${unit} · tract ${t}`,{sticky:true,className:'heat-tt'});
-    }else{l.setStyle({color:'#334155',weight:.6,fillColor:'#1e293b',fillOpacity:.12});l.unbindTooltip();}
-  });
-  const lg=document.getElementById('heatLegend');
-  lg.innerHTML=`<div class="hl-t">${m.meta.label}</div><div class="hl-bar"></div><div class="hl-sc"><span>${mn.toFixed(0)}${unit}</span><span>${mx.toFixed(0)}${unit}</span></div><div class="hl-note">by census tract · ${m.meta.higherIsWorse?'red = worse':'red = higher'} · source: CDC PLACES</div>`;
-  lg.style.display='block';
+    if(bt&&typeof bt.value==='number'){l.setStyle({color:'#0b1220',weight:.6,fillColor:heatRGB((bt.value-mn)/rng),fillOpacity:.78});
+      l.bindPopup(`<b>${hlabel(m)}</b><br>${bt.value.toFixed(1)}${unit} of adults · tract ${t}`,{className:'heat-pop'});
+    }else{l.setStyle({color:'#334155',weight:.6,fillColor:'#1e293b',fillOpacity:.12});l.unbindPopup();}});
+  // one % label per census tract, at the tract's centroid
+  if(!HEATLABELS)HEATLABELS=L.layerGroup().addTo(MAP);HEATLABELS.clearLayers();
+  const seen={};
+  DATA.precincts.forEach(f=>{const t=f.properties.tract;if(seen[t])return;const bt=m.byTract[t];if(!bt||typeof bt.value!=='number')return;seen[t]=1;
+    const cs=DATA.precincts.filter(g=>g.properties.tract===t).map(featCentroid).filter(Boolean);if(!cs.length)return;
+    const lat=cs.reduce((s,c)=>s+c[0],0)/cs.length,lng=cs.reduce((s,c)=>s+c[1],0)/cs.length;
+    L.marker([lat,lng],{interactive:false,icon:L.divIcon({className:'heat-lbl',html:`${bt.value.toFixed(1)}%`,iconSize:[44,16]})}).addTo(HEATLABELS);});
+  document.getElementById('hcMin').textContent=mn.toFixed(0)+unit;
+  document.getElementById('hcMax').textContent=mx.toFixed(0)+unit;
+  document.getElementById('heatCard').style.display='block';
 }
 function setMode(mode){
   MODE=mode;
   document.getElementById('tabLeg').classList.toggle('on',mode==='leg');
   document.getElementById('tabHeat').classList.toggle('on',mode==='heat');
-  document.getElementById('condWrap').style.display=mode==='heat'?'block':'none';
-  if(mode==='heat'){deselect();heatColor(document.getElementById('condSel').value);}
-  else{document.getElementById('heatLegend').style.display='none';LAYER.eachLayer(l=>l.unbindTooltip());if(SEL)highlight(SEL.leg.name,SEL.chamber);else highlight(null);}
+  if(mode==='heat'){deselect();document.getElementById('heatCard').style.display='block';heatColor(document.getElementById('condSel').value);}
+  else{document.getElementById('heatCard').style.display='none';if(HEATLABELS)HEATLABELS.clearLayers();
+    LAYER.eachLayer(l=>{l.unbindPopup();l.setStyle({color:'#334155',weight:.7,fillColor:'#1e293b',fillOpacity:.12});});
+    if(SEL)highlight(SEL.leg.name,SEL.chamber);else highlight(null);}
+}
+/* ---- Mattapan vs Boston compare card ---- */
+function renderCompare(key){
+  const m=(DATA.health||[]).find(h=>h.meta.key===key);if(!m)return;
+  const z=m.values.zcta.value,c=m.values.city.value,unit=m.values.zcta.unit||'%',max=Math.max(z,c)*1.15||1;
+  const r=c?z/c:1,worse=m.meta.higherIsWorse?r>1.03:r<0.97;
+  const txt=Math.abs(r-1)<=.03?'about the same as Boston overall':`${(r>=1?r:1/r).toFixed(1)}× ${r>=1?'higher':'lower'} than Boston overall`;
+  const gcol=worse?'linear-gradient(90deg,#fb7185,#f43f5e)':'linear-gradient(90deg,#34d399,#2dd4bf)';
+  document.getElementById('cmpBody').innerHTML=`
+    <div class="cc-big" style="color:${worse?'var(--red)':'var(--teal)'}">${z}${unit}<span class="cc-lbl">of Mattapan adults · ${hlabel(m)}</span></div>
+    <div class="cc-bars">
+      <div class="ccb"><span class="ccl">Mattapan</span><div class="cct"><div class="ccf" style="width:${z/max*100}%;background:${gcol}"></div></div><span class="ccv">${z}${unit}</span></div>
+      <div class="ccb"><span class="ccl">Boston</span><div class="cct"><div class="ccf" style="width:${c/max*100}%;background:linear-gradient(90deg,#475569,#64748b)"></div></div><span class="ccv">${c}${unit}</span></div>
+    </div>
+    <div class="hint">Mattapan is ${txt}. Public data — CDC PLACES (adults 18+). Pick any condition above to compare.</div>`;
 }
 function selectLeg(chamber,leg){
   // fill url/district from officials if available
@@ -405,8 +469,12 @@ async function boot(){
   document.getElementById('cards').innerHTML=(DATA.health||[]).map(cardHTML).join('')+lifeExpCard();
   renderList(); buildMap();
   // condition selector for heat map (metrics with per-tract data only)
-  const cs=document.getElementById('condSel');
-  cs.innerHTML=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${m.meta.label}</option>`).join('');
+  const opts=(DATA.health||[]).filter(m=>m.byTract).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
+  const cs=document.getElementById('condSel');cs.innerHTML=opts;
+  // Mattapan vs Boston compare card
+  const cmp=document.getElementById('cmpSel');cmp.innerHTML=(DATA.health||[]).map(m=>`<option value="${m.meta.key}">${hlabel(m)}</option>`).join('');
+  cmp.onchange=()=>renderCompare(cmp.value);
+  renderCompare((DATA.health||[])[0]?.meta.key);
   document.getElementById('foot').innerHTML=`${(DATA.health||[]).length} health indicators · ${Object.keys(DATA.demographics||{}).length} census tracts · ${(DATA.precincts||[]).length} precincts · sources: CDC PLACES, ACS.`;
   document.getElementById('popModal').addEventListener('click',e=>{if(e.target.id==='popModal')closePop();});
   document.getElementById('pdfBtn').onclick=exportPDF;
